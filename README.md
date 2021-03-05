@@ -1,2 +1,1 @@
-# pytorch--Resnet
-re-implementation of Deep residual networks
+# Resnet implementation by pytorch
