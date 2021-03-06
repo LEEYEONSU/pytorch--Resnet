@@ -8,8 +8,8 @@ import resnet
 # CIFAR-10 training transformation
 transform = transforms.Compose([
         transforms.Pad(4),
-        transforms.RandomHorizontalFlip(),
         transforms.RandomCrop(32),
+        transforms.RandomHorizontalFlip(),
         transforms.ToTensor()
 ])
 
@@ -35,4 +35,7 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
 # Device Config
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Epoch = 80, lr = 1e-3
+# weight_init? reference 달림 
+# optimizer weight_decay = 1e-4, momentum = 0.9
+# Epoch = 80, lr = MultiStepLR 
+# normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
