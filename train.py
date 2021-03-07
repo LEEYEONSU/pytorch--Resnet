@@ -50,11 +50,11 @@ def main():
         ])
 
         # CIFAR-10 dataset
-        train_dataset = torchvision.datasets.CIFAR10(root = './data/', 
+        train_dataset = torchvision.datasets.CIFAR10(root = '../data/', 
                                                                                 train = True, 
                                                                                 transform = TRAIN_transform, 
                                                                                 download = True)
-        val_dataset = torchvision.datasets.CIFAR10(root = './data/', 
+        val_dataset = torchvision.datasets.CIFAR10(root = '../data/', 
                                                                                 train = False, 
                                                                                 transform = VAL_transform,
                                                                                 download = True)
