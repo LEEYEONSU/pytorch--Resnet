@@ -13,12 +13,13 @@ from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
 
-
 ######################################################
 parser = argparse.ArgumentParser(description = 'Pytorch Resnet-32 model for CIFAR-10 Classification')
 
 parser.add_argument('--print-freq', default=30, type=int, help = 'Print frequency')
 parser.add_argument('--save_dir', default='./save_model/', type=str, help = 'saving model path')
+parser.add_argument('--save-every', dest='save_every',help='Saves checkpoints at every specified number of epochs', type=int, default=10)
+parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true', help='evaluate model on validation set')
 
 parser.add_argument('--lr', default=0.1, help = 'learning rate')
 parser.add_argument('--weight_decay', default = 1e-4, help = 'weight_decay')
@@ -33,7 +34,10 @@ parser.add_argument('--logdir', type = str, default = 'logs', help = '')
 args = parser.parse_args()
 ######################################################
 
+best_prec1 = 0
 def main():
+
+        global args, best_prec1
         # CIFAR-10 Training & Test Transformation
         print('. . . . . . . . . . . . . . . .PREPROCESSING DATA . . . . . . . . . . . . . . . .')
         TRAIN_transform = transforms.Compose([
@@ -65,7 +69,7 @@ def main():
                                                 shuffle=True)
 
         val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
-                                                batch_size = args.test_batch_size , 
+                                                batch_size = args.batch_size , 
                                                 shuffle=False)
 
         # Device Config
@@ -78,6 +82,9 @@ def main():
         optimizer = optim.SGD(model.parameters() , lr = args.lr , weight_decay = args.weight_decay, momentum = args.momentum)
         lr_schedule = lr_scheduler.MultiStepLR(optimizer, milestones = [32000,48000], gamma = 0.1)
 
+        if args.evaluate:
+                validate(val_loader, model, criterion)
+
         #  Epoch = args.Epoch
         for epoch in range(0, args.Epoch):
 
@@ -85,7 +92,7 @@ def main():
                 train(train_loader, model, criterion, optimizer, args.Epoch)
                 lr_schedule.step()
 
-                prec1 = validate(val_loader, model, criterion)
+                prec1 = validation(val_loader, model, criterion)
 
                 is_best = prec1 > best_prec1
                 best_prec1 = max(prec1, best_prec1)
@@ -95,7 +102,7 @@ def main():
                         'epoch': epoch + 1,
                         'state_dict': model.state_dict(),
                         'best_prec1': best_prec1,
-                }, is_best, filename=os.path.join(args.save_dir, 'checkpoint.th'))
+                        }, is_best, filename=os.path.join(args.save_dir, 'checkpoint.th'))
 
                 save_checkpoint({
                 'state_dict': model.state_dict(),
@@ -165,6 +172,8 @@ def validation(val_loader, model, criterion):
                         target_v = target
 
                         output = model(input_v)
+                        loss = criterion(output, target_v)
+
                         loss = loss.float()
 
                         prec1 = accuracy(output.data, target)[0]
@@ -176,7 +185,7 @@ def validation(val_loader, model, criterion):
                         end = time.time()
 
                         if i % args.print_freq == 0:
-                                rint('Test: [{0}/{1}]\t'
+                                print('Test: [{0}/{1}]\t'
                                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                                 'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
@@ -220,4 +229,12 @@ def accuracy(output, target, topk=(1,)):
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
 
-main()
+def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
+    """
+    Save the training model
+    """
+    torch.save(state, filename)
+
+if __name__ == '__main__':
+        main()
+        

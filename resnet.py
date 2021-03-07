@@ -27,7 +27,7 @@ class ResNet(nn.Module):
                         down_sample = True
                 else: down_sample = False
 
-                layers = nn.ModuleList([block(in_channels, out_channels, down_sample)])
+                layers = nn.ModuleList([block(in_channels, out_channels, stride = stride, down_sample = down_sample)])
 
                 for _ in range(n - 1):
                         layers.append(block(out_channels, out_channels))
@@ -88,6 +88,7 @@ class ResidualBlock(nn.Module):
                 return out 
 
 # Downsampling Option A
+# code from https://github.com/KellerJordan/ResNet-PyTorch-CIFAR10/blob/master/model.py
 class IdentityPadding(nn.Module):
 
         def __init__(self, in_channels, out_channels, stride):
@@ -97,7 +98,6 @@ class IdentityPadding(nn.Module):
                 self.fill_channel = out_channels - in_channels
 
         def forward(self, x):
-
                 out = F.pad(x, (0, 0, 0, 0, 0, self.fill_channel))
                 out = self.pooling(out)
                 return out 
