@@ -70,8 +70,7 @@ def main(args):
                 validation(val_loader, model, criterion, args)
 
         #  Epoch = args.Epoch
-        for epoch_ in range(0, args.Epoch,1):
-
+        for epoch_ in range(0, args.Epoch):
                 print('current lr {:.5e}'.format(optimizer.param_groups[0]['lr']))
                 train(train_loader, model, criterion, optimizer, args.Epoch, args)
                 lr_schedule.step()
@@ -92,7 +91,8 @@ def main(args):
                 'state_dict': model.state_dict(),
                 'best_prec1': best_prec1,
                 }, is_best, filename=os.path.join(args.save_dir, 'model.pt')) 
-                print('SAVE_MODEL prec@1 : ', best_prec1 )
+        
+        print('THE BEST MODEL prec@1 : {best_prec1:.3f} saved. '.format(best_prec1 = best_prec1))
 
 def train(train_loader, model, criterion, optimizer, epoch_, args):
         
