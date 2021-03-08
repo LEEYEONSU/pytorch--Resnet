@@ -14,7 +14,6 @@ from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
 
-
 best_prec1 = 0
 def main(args):
 
@@ -68,7 +67,7 @@ def main(args):
                 validate(val_loader, model, criterion, args)
 
         #  Epoch = args.Epoch
-        for epoch_ in range(0, args.Epoch):
+        for epoch_ in range(0, args.Epoch,1):
 
                 print('current lr {:.5e}'.format(optimizer.param_groups[0]['lr']))
                 train(train_loader, model, criterion, optimizer, args.Epoch, args)
@@ -91,10 +90,11 @@ def main(args):
                 'best_prec1': best_prec1,
                 }, is_best, filename=os.path.join(args.save_dir, 'model.th'))
 
+epoch_tmp = 0 
 def train(train_loader, model, criterion, optimizer, epoch_, args):
         
+        global epoch_tmp
         batch_time = AverageMeter()
-        data_time = AverageMeter()
         losses = AverageMeter()
         top1 = AverageMeter()
 
@@ -102,9 +102,8 @@ def train(train_loader, model, criterion, optimizer, epoch_, args):
 
         end = time.time()
 
+        epoch_tmp += 1
         for i, (input_, target) in enumerate(train_loader):
-
-                data_time.update(time.time() - end)
 
                 input_v = input_.cuda()
                 target = target.cuda()
@@ -125,18 +124,15 @@ def train(train_loader, model, criterion, optimizer, epoch_, args):
                 losses.update(loss.item(), input_.size(0))
                 top1.update(prec1.item(), input_.size(0))
 
-                # elapsed time
                 batch_time.update( time.time() - end )
                 end = time.time()
 
                 if i % args.print_freq == 0:
                         print('Epoch: [{0}][{1}/{2}]\t'
                                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-#                                 'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
                                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                                 'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                                epoch_, i, len(train_loader), batch_time=batch_time,
-                                data_time=data_time, loss=losses, top1=top1))
+                                epoch_tmp, i,len(train_loader),batch_time=batch_time,loss=losses,top1=top1))
 
 def validation(val_loader, model, criterion, args):
 
@@ -163,7 +159,6 @@ def validation(val_loader, model, criterion, args):
                         losses.update(loss.item(), input_.size(0))
                         top1.update(prec1.item(), input_.size(0))
 
-                        # measure elapsed time
                         batch_time.update(time.time() - end)
                         end = time.time()
 

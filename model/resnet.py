@@ -21,6 +21,7 @@ class ResNet(nn.Module):
                         if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
                                 init.kaiming_normal_(m.weight)
 
+        # n = # of layers
         def _make_layers(self, block, in_channels, out_channels, stride, n = 5):
 
                 if stride == 2:
@@ -104,5 +105,3 @@ class IdentityPadding(nn.Module):
 
 def resnet():
         return ResNet(5, block = ResidualBlock)
-
-

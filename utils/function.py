@@ -1,5 +1,6 @@
 import torch.utils.data
 
+### CODE FROM https://github.com/akamaster/pytorch_resnet_cifar10/blob/master/trainer.py
 def accuracy(output, target, topk=(1,)):
         """Computes the precision@k for the specified values of k"""
         maxk = max(topk)
@@ -16,14 +17,9 @@ def accuracy(output, target, topk=(1,)):
         return res
 
 def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
-        """
-        Save the training model
-        """
         torch.save(state, filename)
     
-### CODE FROM https://github.com/akamaster/pytorch_resnet_cifar10/blob/master/trainer.py
 class AverageMeter(object):
-        """Computes and stores the average and current value"""
         def __init__(self):
             self.reset()
 
