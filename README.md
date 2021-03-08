@@ -1,4 +1,4 @@
-##### Resnet - 32 implementation for CIFAR - 10 (pytorch)
+### Resnet - 32 implementation for CIFAR - 10 (pytorch)
 
 - **For training**
 
@@ -12,6 +12,7 @@
 
 Resnet Motivation : As the model gets deeper, shouldn't the performance at least be greater than equal to the shallow model? 
 
+- Dataset : CIFAR - 10
 ##### Preprocessing 
 
 - As written in paper 
