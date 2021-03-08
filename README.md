@@ -12,7 +12,7 @@
 
 Resnet Motivation : As the model gets deeper, shouldn't the performance at least be greater than equal to the shallow model? 
 
-- Dataset : CIFAR - 10
+-Dataset : CIFAR - 10
 ##### Preprocessing 
 
 - As written in paper 
@@ -31,7 +31,7 @@ Resnet Motivation : As the model gets deeper, shouldn't the performance at least
 - Optimizer
   - SGD 
   - Learning Rate 
-    - Start wigh 0.1 divede it by 10 at 32k and 48 iterations 
+    - Start weight 0.1 divide it by 10 at 32k and 48k iterations 
   - Weight decay : 1e-4
   - momentum : 0.9
 
@@ -44,5 +44,7 @@ Resnet Motivation : As the model gets deeper, shouldn't the performance at least
 - 6n + 2 stacked weights (This implementation n = 5)
 
 - Use identity shortcuts in all cases (option A in paper, IdentityPadding) 
+
+- subsampling : convolution with stride = 2
 
   

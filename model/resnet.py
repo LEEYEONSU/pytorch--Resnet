@@ -17,9 +17,13 @@ class ResNet(nn.Module):
                 self.fc_out = nn.Linear(64, num_classes)
 
                 #weight_initialization
+                # self.modules ?? 
                 for m in self.modules(): 
                         if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
                                 init.kaiming_normal_(m.weight)
+                        elif isinstance(m, nn.BatchNorm2d):
+                                init.constant_(m.weight, 1)
+                                init.constant_(m.bias, 0)
 
         # n = # of layers
         def _make_layers(self, block, in_channels, out_channels, stride, n = 5):
@@ -71,8 +75,6 @@ class ResidualBlock(nn.Module):
 
         def forward(self, x):
 
-                shortcut = x
-
                 out = self.conv1(x)
                 out = self.bn1(out)
                 out = self.relu(out)
@@ -81,9 +83,9 @@ class ResidualBlock(nn.Module):
                 out = self.bn2(out)
 
                 if self.down_sample is not None:
-                        shortcut = self.down_sample(x)
+                        x = self.down_sample(x)
 
-                out = out + shortcut 
+                out = out + x 
                 out = self.relu(out)
 
                 return out 
@@ -95,12 +97,16 @@ class IdentityPadding(nn.Module):
         def __init__(self, in_channels, out_channels, stride):
                 super(IdentityPadding, self).__init__()
 
-                self.pooling = nn.MaxPool2d(1, stride=stride)
+                self.conv = nn.Conv2d(out_channels, out_channels, kernel_size = 3, stride = stride)
                 self.fill_channel = out_channels - in_channels
+                self.pooling = nn.MaxPool2d(1, stride = stride)
 
         def forward(self, x):
-                out = F.pad(x, (0, 0, 0, 0, 0, self.fill_channel))
+                # x = (batch, channel, height, width)  (pad_left, pad_right, pad_top, pad_bottom, pad_front, pad_back) 
+                out = F.pad(x, (0, 0, 0, 0, self.fill_channel//2, self.fill_channel//2))
                 out = self.pooling(out)
+                # out = self.conv(out) 
+                
                 return out 
 
 def resnet():

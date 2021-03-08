@@ -15,7 +15,6 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
 
 best_prec1 = 0
-epoch_tmp = 0 
 def main(args):
 
         global best_prec1
@@ -45,12 +44,15 @@ def main(args):
                                                      transform = VAL_transform,
                                                      download = True)
 
-        # Data loader
+        # Data loader 
         train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
+                                                pin_memory = True, 
+                                                drop_last = True, 
                                                 batch_size = args.batch_size , 
                                                 shuffle=True)
 
         val_loader = torch.utils.data.DataLoader(dataset=val_dataset,
+                                                pin_memory = True, 
                                                 batch_size = args.batch_size , 
                                                 shuffle=False)
 
@@ -60,22 +62,22 @@ def main(args):
         model = resnet()
         model = model.to(device)
 
-        criterion = nn.CrossEntropyLoss()
+        criterion = nn.CrossEntropyLoss().to(device)
         optimizer = optim.SGD(model.parameters() , lr = args.lr , weight_decay = args.weight_decay, momentum = args.momentum)
         lr_schedule = lr_scheduler.MultiStepLR(optimizer, milestones = [32000,48000], gamma = 0.1)
 
         if args.evaluate :
                 model.load_state_dict(torch.load('./save_model/model.th'))  
                 model.to(device)
-                validation(val_loader, model, criterion, args)
+                validation(args, val_loader, model, criterion)
 
         #  Epoch = args.Epoch
         for epoch_ in range(0, args.Epoch):
                 print('current lr {:.5e}'.format(optimizer.param_groups[0]['lr']))
-                train(train_loader, model, criterion, optimizer, args.Epoch, args)
+                train_one_epoch(args, train_loader, model, criterion, optimizer, epoch_)
                 lr_schedule.step()
 
-                prec1 = validation(val_loader, model, criterion, args)
+                prec1 = validation(args, val_loader, model, criterion)
 
                 is_best = prec1 > best_prec1
                 best_prec1 = max(prec1, best_prec1)
@@ -92,11 +94,11 @@ def main(args):
                 'best_prec1': best_prec1,
                 }, is_best, filename=os.path.join(args.save_dir, 'model.pt')) 
         
-        print('THE BEST MODEL prec@1 : {best_prec1:.3f} saved. '.format(best_prec1 = best_prec1))
+                print('THE BEST MODEL prec@1 : {best_prec1:.3f} saved. '.format(best_prec1 = best_prec1))
 
-def train(train_loader, model, criterion, optimizer, epoch_, args):
+def train_one_epoch(args, train_loader, model, criterion, optimizer, epoch_):
         
-        global epoch_tmp
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         batch_time = AverageMeter()
         losses = AverageMeter()
         top1 = AverageMeter()
@@ -105,11 +107,10 @@ def train(train_loader, model, criterion, optimizer, epoch_, args):
 
         end = time.time()
 
-        epoch_tmp += 1
         for i, (input_, target) in enumerate(train_loader):
 
-                input_v = input_.cuda()
-                target = target.cuda()
+                input_v = input_.to(device)
+                target = target.to(device)
                 target_v = target
 
                 output = model(input_v)
@@ -119,8 +120,8 @@ def train(train_loader, model, criterion, optimizer, epoch_, args):
                 loss.backward()
                 optimizer.step()
 
-                output = output.float()
-                loss = loss.float()
+                # output = output.float()
+                # loss = loss.float()
             
                 # measure accuracy and record loss
                 prec1 = accuracy(output.data, target)[0]
@@ -135,10 +136,11 @@ def train(train_loader, model, criterion, optimizer, epoch_, args):
                                 'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                                 'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                                 'Prec@1 {top1.val:.3f} ({top1.avg:.3f})'.format(
-                                epoch_tmp, i,len(train_loader),batch_time=batch_time,loss=losses,top1=top1))
+                                epoch_, i,len(train_loader),batch_time=batch_time,loss=losses,top1=top1))
 
-def validation(val_loader, model, criterion, args):
+def validation(args, val_loader, model, criterion):
 
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         batch_time = AverageMeter()
         losses = AverageMeter()
         top1 = AverageMeter()
@@ -149,14 +151,14 @@ def validation(val_loader, model, criterion, args):
 
         with torch.no_grad():
                 for i, (input_, target) in enumerate(val_loader):
-                        input_v = input_.cuda()
-                        target = target.cuda()
+                        input_v = input_.to(device)
+                        target = target.to(device)
                         target_v = target
 
                         output = model(input_v)
                         loss = criterion(output, target_v)
 
-                        loss = loss.float()
+                        # loss = loss.float()
 
                         prec1 = accuracy(output.data, target)[0]
                         losses.update(loss.item(), input_.size(0))
