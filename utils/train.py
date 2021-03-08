@@ -4,17 +4,18 @@ import torch
 import argparse
 import torchvision
 import torch.nn as nn
-import torch.optim as optim
 import torch.utils.data
+import torch.optim as optim
 import torchvision.transforms as transforms
 
-from model.resnet import resnet
 from utils.function import *
+from model.resnet import resnet
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
 
 best_prec1 = 0
+epoch_tmp = 0 
 def main(args):
 
         global best_prec1
@@ -63,8 +64,10 @@ def main(args):
         optimizer = optim.SGD(model.parameters() , lr = args.lr , weight_decay = args.weight_decay, momentum = args.momentum)
         lr_schedule = lr_scheduler.MultiStepLR(optimizer, milestones = [32000,48000], gamma = 0.1)
 
-        if args.evaluate:
-                validate(val_loader, model, criterion, args)
+        if args.evaluate :
+                model.load_state_dict(torch.load('./save_model/model.th'))  
+                model.to(device)
+                validation(val_loader, model, criterion, args)
 
         #  Epoch = args.Epoch
         for epoch_ in range(0, args.Epoch,1):
@@ -83,14 +86,14 @@ def main(args):
                         'epoch': epoch_ + 1,
                         'state_dict': model.state_dict(),
                         'best_prec1': best_prec1,
-                        }, is_best, filename=os.path.join(args.save_dir, 'checkpoint.th'))
+                        }, is_best, filename=os.path.join(args.save_dir, 'checkpoint.pt'))
 
                 save_checkpoint({
                 'state_dict': model.state_dict(),
                 'best_prec1': best_prec1,
-                }, is_best, filename=os.path.join(args.save_dir, 'model.th'))
+                }, is_best, filename=os.path.join(args.save_dir, 'model.pt')) 
+                print('SAVE_MODEL prec@1 : ', best_prec1 )
 
-epoch_tmp = 0 
 def train(train_loader, model, criterion, optimizer, epoch_, args):
         
         global epoch_tmp
@@ -173,3 +176,4 @@ def validation(val_loader, model, criterion, args):
                 print(' * Prec@1 {top1.avg:.3f}'.format(top1=top1))
 
         return top1.avg
+

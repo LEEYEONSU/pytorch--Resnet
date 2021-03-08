@@ -1,3 +1,3 @@
-# Resnet implementation by pytorch
+### Resnet-32 implementation by pytorch (CIFAR - 10) 
 
-python train.py 
+#####
