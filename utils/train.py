@@ -26,12 +26,12 @@ def main(args):
                 transforms.RandomCrop(32),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(), 
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010]),
         ])
 
         VAL_transform = transforms.Compose([
                 transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),      
+                transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010]),      
         ])
 
         # CIFAR-10 dataset
@@ -64,7 +64,7 @@ def main(args):
 
         criterion = nn.CrossEntropyLoss().to(device)
         optimizer = optim.SGD(model.parameters() , lr = args.lr , weight_decay = args.weight_decay, momentum = args.momentum)
-        lr_schedule = lr_scheduler.MultiStepLR(optimizer, milestones = [32000,48000], gamma = 0.1)
+        lr_schedule = lr_scheduler.MultiStepLR(optimizer, milestones = [250,375], gamma = 0.1)
 
         if args.evaluate :
                 model.load_state_dict(torch.load('./save_model/model.th'))  
