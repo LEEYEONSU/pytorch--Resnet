@@ -97,15 +97,24 @@ class IdentityPadding(nn.Module):
         def __init__(self, in_channels, out_channels, stride):
                 super(IdentityPadding, self).__init__()
 
-                self.conv = nn.Conv2d(out_channels, out_channels, kernel_size = 3, stride = stride)
-                self.fill_channel = out_channels - in_channels
-                self.pooling = nn.MaxPool2d(1, stride = stride)
+                self.down = nn.Sequential(
+                                nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False),
+                                nn.BatchNorm2d(out_channels)
+                )
+                
+                # Method 2 
+                # self.conv = nn.Conv2d(out_channels, out_channels, kernel_size = 3, stride = stride, padding = 1, bias = 1)
+                # self.fill_channel = out_channels - in_channels
+
+                #Method 3
+                # self.pooling = nn.MaxPool2d(1, stride = stride)
 
         def forward(self, x):
+
+                out = self.down(x)
                 # x = (batch, channel, height, width)  (pad_left, pad_right, pad_top, pad_bottom, pad_front, pad_back) 
-                out = F.pad(x, (0, 0, 0, 0, self.fill_channel//2, self.fill_channel//2))
-                out = self.pooling(out)
-                # out = self.conv(out) 
+                # out = F.pad(x, (0, 0, 0, 0, self.fill_channel//2, self.fill_channel//2))
+                # out = self.pooling(out)
                 
                 return out 
 
