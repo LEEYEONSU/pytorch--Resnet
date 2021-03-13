@@ -8,11 +8,21 @@
   --print_freq 32 --save_dir ./save_model/ --save_every 10 --lr 0.1 --weight_decay 1e-4 --momentum 0.9 --Epoch 80 --batch_size 128 --test_batch_size 100 
   ~~~
 
+- **Result** 
+
+  ```
+  |     |resnet paper| this code |
+  |------|---|---|
+  |top - 1 error|7.51|**6.27**|
+  
+  ```
+
 ---
 
 Resnet Motivation : As the model gets deeper, shouldn't the performance at least be greater than equal to the shallow model? 
 
 -Dataset : CIFAR - 10
+
 ##### Preprocessing 
 
 - As written in paper 
