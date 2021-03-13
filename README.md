@@ -10,12 +10,9 @@
 
 - **Result** 
 
-  ```
-  |     |resnet paper| this code |
-  |------|---|---|
-  |top - 1 error|7.51|**6.27**|
-  
-  ```
+- |               | resnet paper | this code |
+  | ------------- | :----------: | :-------: |
+  | top - 1 error |     7.51     | **6.27**  |
 
 ---
 
