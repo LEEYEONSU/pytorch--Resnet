@@ -11,12 +11,15 @@ import torchvision.transforms as transforms
 from utils.train import *
 from utils.function import *
 from model.resnet import resnet
+from model.resnet34 import resnet34
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR10
 
 #. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .#
 parser = argparse.ArgumentParser(description = 'Pytorch Resnet-32 model for CIFAR-10 Classification')
+
+parser.add_argument('--dataset', default='imagenet', type=str, help = 'Print frequency')
 
 parser.add_argument('--print_freq', default=32, type=int, help = 'Print frequency')
 parser.add_argument('--save_dir', default='./save_model/', type=str, help = 'saving model path')

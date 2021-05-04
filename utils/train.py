@@ -12,37 +12,62 @@ from utils.function import *
 from model.resnet import resnet
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
-from torchvision.datasets import CIFAR10
+from torchvision.datasets import CIFAR10, ImageNet
 
 best_prec1 = 0
 def main(args):
 
         global best_prec1
-        
-        # CIFAR-10 Training & Test Transformation
+
         print('. . . . . . . . . . . . . . . .PREPROCESSING DATA . . . . . . . . . . . . . . . .')
-        TRAIN_transform = transforms.Compose([
-                transforms.Pad(4),
-                transforms.RandomCrop(32),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(), 
-                transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010]),
-        ])
+        if args.dataset == 'cifar10' :
+                # CIFAR-10 Training & Test Transformation
+                TRAIN_transform = transforms.Compose([
+                        transforms.Pad(4),
+                        transforms.RandomCrop(32),
+                        transforms.RandomHorizontalFlip(),
+                        transforms.ToTensor(), 
+                        transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010]),
+                ])
 
-        VAL_transform = transforms.Compose([
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010]),      
-        ])
+                VAL_transform = transforms.Compose([
+                        transforms.ToTensor(),
+                        transforms.Normalize(mean=[0.4914, 0.4822, 0.4465], std=[0.2023, 0.1994, 0.2010]),      
+                ])
 
-        # CIFAR-10 dataset
-        train_dataset = torchvision.datasets.CIFAR10(root = '../data/', 
-                                                     train = True, 
-                                                     transform = TRAIN_transform, 
-                                                     download = True)
-        val_dataset = torchvision.datasets.CIFAR10(root = '../data/', 
-                                                     train = False, 
-                                                     transform = VAL_transform,
-                                                     download = True)
+                # CIFAR-10 dataset
+                train_dataset = torchvision.datasets.CIFAR10(root = '../data/', 
+                                                        train = True, 
+                                                        transform = TRAIN_transform, 
+                                                        download = True)
+                val_dataset = torchvision.datasets.CIFAR10(root = '../data/', 
+                                                        train = False, 
+                                                        transform = VAL_transform,
+                                                        download = True)
+
+        elif args.dataset == 'imagenet' :
+                # Imagenet Training & Test Transformation
+                TRAIN_transform = transforms.Compose([
+                        transforms.Pad(4),
+                        transforms.RandomCrop(32),
+                        transforms.RandomHorizontalFlip(),
+                        transforms.ToTensor(), 
+                        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+                ])
+
+                VAL_transform = transforms.Compose([
+                        transforms.ToTensor(),
+                        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),      
+                ])
+
+                train_dataset = torchvision.datasets.ImageNet(root = '../data/imagenet/', 
+                                                        train = True, 
+                                                        transform = TRAIN_transform, 
+                                                        download = True)
+                val_dataset = torchvision.datasets.ImageNet(root = '../data/imagenet/', 
+                                                        train = False, 
+                                                        transform = VAL_transform,
+                                                        download = True)
 
         # Data loader 
         train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
@@ -59,7 +84,10 @@ def main(args):
         # Device Config
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        model = resnet()
+        if args.dataset == 'imagenet':
+                model = resnet34()
+        else : 
+                model = resnet()
         model = model.to(device)
 
         criterion = nn.CrossEntropyLoss().to(device)
@@ -120,9 +148,6 @@ def train_one_epoch(args, train_loader, model, criterion, optimizer, epoch_):
                 loss.backward()
                 optimizer.step()
 
-                # output = output.float()
-                # loss = loss.float()
-            
                 # measure accuracy and record loss
                 prec1 = accuracy(output.data, target)[0]
                 losses.update(loss.item(), input_.size(0))
@@ -157,8 +182,6 @@ def validation(args, val_loader, model, criterion):
 
                         output = model(input_v)
                         loss = criterion(output, target_v)
-
-                        # loss = loss.float()
 
                         prec1 = accuracy(output.data, target)[0]
                         losses.update(loss.item(), input_.size(0))

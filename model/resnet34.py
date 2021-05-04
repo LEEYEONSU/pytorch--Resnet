@@ -2,23 +2,23 @@ import torch.nn as nn
 import torch.nn.init as init
 import torch.nn.functional as F
 
-# Resnet-32 
-class ResNet(nn.Module):
-        def __init__ (self, n_layers, block, num_classes = 10):
+# Resnet-34 
+class ResNet34(nn.Module):
+        def __init__ (self, num_blocks, block, num_classes = 1000):
                 super(ResNet, self).__init__()
-                self.conv1 = nn.Conv2d(in_channels = 3, out_channels = 16, kernel_size = 3, stride = 1, padding = 1, bias = False)
-                self.bn1 = nn.BatchNorm2d(16)
+                self.conv1 = nn.Conv2d(in_channels = 3, out_channels = 64, kernel_size = 3, stride = 1, padding = 1, bias = False)
+                self.bn1 = nn.BatchNorm2d(64)
                 self.relu = nn.ReLU(inplace = True)
                 
-                self.layers1 = self._make_layers(block, 16, 16, stride = 1)
-                self.layers2 = self._make_layers(block, 16, 32, stride = 2)
-                self.layers3 = self._make_layers(block, 32, 64, stride = 2)
+                self.layers1 = self._make_layers(block, 64, 64, stride = 1, n = num_blocks[0])
+                self.layers2 = self._make_layers(block, 64, 128, stride = 2, n = num_blocks[1])
+                self.layers3 = self._make_layers(block, 128, 256, stride = 2, n = num_blocks[2])
+                self.layers4 = self._make_layers(block, 256, 512, stride = 2, n = num_blocks[3])
 
-                self.avg_pooling = nn.AvgPool2d(8, stride = 1)
-                self.fc_out = nn.Linear(64, num_classes)
+                self.avg_pooling = nn.AvgPool2d(4, stride = 1)
+                self.fc_out = nn.Linear(512, num_classes)
 
                 #weight_initialization
-                # self.modules ?? 
                 for m in self.modules(): 
                         if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
                                 init.kaiming_normal_(m.weight)
@@ -27,7 +27,7 @@ class ResNet(nn.Module):
                                 init.constant_(m.bias, 0)
 
         # n = # of layers
-        def _make_layers(self, block, in_channels, out_channels, stride, n = 5):
+        def _make_layers(self, block, in_channels, out_channels, stride, n):
 
                 if stride == 2:
                         down_sample = True
@@ -49,6 +49,7 @@ class ResNet(nn.Module):
                 out = self.layers1(out)
                 out = self.layers2(out)
                 out = self.layers3(out)
+                out = self.layers4(out)
 
                 out = self.avg_pooling(out)
                 out = out.view(out.size(0), -1)
@@ -91,8 +92,6 @@ class ResidualBlock(nn.Module):
 
                 return out 
 
-# Downsampling Option A
-# code from https://github.com/KellerJordan/ResNet-PyTorch-CIFAR10/blob/master/model.py
 class IdentityPadding(nn.Module):
 
         def __init__(self, in_channels, out_channels, stride):
@@ -102,22 +101,11 @@ class IdentityPadding(nn.Module):
                                 nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False),
                                 nn.BatchNorm2d(out_channels)
                 )
-                
-                # Method 2 
-                # self.conv = nn.Conv2d(out_channels, out_channels, kernel_size = 3, stride = stride, padding = 1, bias = 1)
-                # self.fill_channel = out_channels - in_channels
-
-                #Method 3
-                # self.pooling = nn.MaxPool2d(1, stride = stride)
 
         def forward(self, x):
 
                 out = self.down(x)
-                # x = (batch, channel, height, width)  (pad_left, pad_right, pad_top, pad_bottom, pad_front, pad_back) 
-                # out = F.pad(x, (0, 0, 0, 0, self.fill_channel//2, self.fill_channel//2))
-                # out = self.pooling(out)
-                
                 return out 
 
-def resnet():
-        return ResNet(5, block = ResidualBlock)
+def resnet34():
+        return ResNet34([3, 4, 6, 3], block = ResidualBlock)
